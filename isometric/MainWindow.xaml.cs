@@ -12,10 +12,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using System.Windows.Threading;
 
 namespace isometric
-{
+{ 
+	
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
@@ -27,34 +28,28 @@ namespace isometric
 		private Vector vOrigin = new Vector(5, 1);
 		private BitmapImage spritesB;
 		private int[] pWorld;
-
-
-
+		
 		public MainWindow()
 		{
+			DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+			dispatcherTimer.Tick += DispatcherTimer_Tick;
+			dispatcherTimer.Interval = new TimeSpan(0, 0, 0,0,10);
+			dispatcherTimer.Start();
 
 			spritesB = new BitmapImage(new Uri("pack://application:,,,/isometric_demo2.png"));
 			pWorld = new int[Convert.ToInt32(vWorldsize.X * vWorldsize.Y)];
 			Array.Clear(pWorld, 0, pWorld.Length);
 			InitializeComponent();
+
+
 			CompositionTarget.Rendering += CompositionTarget_Rendering;
 
 
 		}
-		Point GetMousePos()
-		{
-			return Mouse.GetPosition(canvas);
-		}
-		private Vector ToScreen(int x,int y)
-		{
-			double a = (vOrigin.X * vTileSize.X) + (x - y) * (vTileSize.X / 2);
-			double b = (vOrigin.Y * vTileSize.Y) + (x + y) * (vTileSize.Y / 2);
-			return new Vector(a, b);
-		}
 
-		//game loop
-		private void CompositionTarget_Rendering(object sender, EventArgs e)
+		private void DispatcherTimer_Tick(object sender, EventArgs e)
 		{
+			
 			canvas.Children.Clear();
 			Vector vMouse = new Vector(GetMousePos().X, GetMousePos().Y);
 			TextBlock text = new TextBlock();
@@ -73,10 +68,11 @@ namespace isometric
 							new Int32Rect(1 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
 							Image cbi = new Image
 							{
-								Width = cb.Width,
-								Height = cb.Height,
+								Width = cb.PixelWidth,
+								Height = cb.PixelHeight,
 								Source = cb,
 							};
+							RenderOptions.SetBitmapScalingMode(cbi, BitmapScalingMode.NearestNeighbor);
 							Canvas.SetTop(cbi, vWorld.Y);
 							Canvas.SetLeft(cbi, vWorld.X);
 							canvas.Children.Add(cbi);
@@ -88,6 +84,23 @@ namespace isometric
 					}
 				}
 			}
+		}
+
+		Point GetMousePos()
+		{
+			return Mouse.GetPosition(canvas);
+		}
+		private Vector ToScreen(int x,int y)
+		{
+			double a = (vOrigin.X * vTileSize.X) + (x - y) * (vTileSize.X / 2);
+			double b = (vOrigin.Y * vTileSize.Y) + (x + y) * (vTileSize.Y / 2);
+			return new Vector(a, b);
+		}
+
+		//game loop
+		private void CompositionTarget_Rendering(object sender, EventArgs e)
+		{
+			
 		}
 	}
 }
