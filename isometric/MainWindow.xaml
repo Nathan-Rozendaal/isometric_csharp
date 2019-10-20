@@ -7,7 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="1500" Width="1000">
     <Grid>
-        <Canvas x:Name="canvas" Margin="0"/>
+        <Canvas x:Name="canvas" Margin="0" MouseLeftButtonDown="clickevent"/>
+        <Canvas x:Name="canvast" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="300">
+            <TextBlock x:Name="info" Canvas.Left="10" TextWrapping="Wrap" Text="TextBlock" Canvas.Top="10"/>
+        </Canvas>
 
     </Grid>
 </Window>

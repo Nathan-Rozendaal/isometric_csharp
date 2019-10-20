@@ -31,30 +31,23 @@ namespace isometric
 		
 		public MainWindow()
 		{
-			DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
-			dispatcherTimer.Tick += DispatcherTimer_Tick;
-			dispatcherTimer.Interval = new TimeSpan(0, 0, 0,0,10);
-			dispatcherTimer.Start();
 
 			spritesB = new BitmapImage(new Uri("pack://application:,,,/isometric_demo2.png"));
 			pWorld = new int[Convert.ToInt32(vWorldsize.X * vWorldsize.Y)];
 			Array.Clear(pWorld, 0, pWorld.Length);
 			InitializeComponent();
 
-
+			Updateui(0);
 			CompositionTarget.Rendering += CompositionTarget_Rendering;
 
 
 		}
 
-		private void DispatcherTimer_Tick(object sender, EventArgs e)
+		private void Updateui(int test)
 		{
 			
 			canvas.Children.Clear();
-			Vector vMouse = new Vector(GetMousePos().X, GetMousePos().Y);
-			TextBlock text = new TextBlock();
-			text.Text = $"mouse position is: {vMouse.X} {vMouse.Y}";
-			canvas.Children.Add(text);
+
 			for (int y = 0; y < vWorldsize.Y; y++)
 			{
 				for (int x = 0; x < vWorldsize.X; x++)
@@ -65,7 +58,7 @@ namespace isometric
 						case 0:
 							CroppedBitmap cb = new CroppedBitmap(
 							spritesB,
-							new Int32Rect(1 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
+							new Int32Rect(test * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
 							Image cbi = new Image
 							{
 								Width = cb.PixelWidth,
@@ -100,6 +93,21 @@ namespace isometric
 		//game loop
 		private void CompositionTarget_Rendering(object sender, EventArgs e)
 		{
+			Vector vMouse = new Vector(GetMousePos().X, GetMousePos().Y);
+			info.Text = $"mouse position is: {vMouse.X} {vMouse.Y}";
+			
+		}
+
+		int hey = 0;
+		private void clickevent(object sender, MouseButtonEventArgs e)
+		{
+			hey++;
+			if (hey == 4)
+			{
+				hey = 0;
+			}
+				Updateui(hey);
+			
 			
 		}
 	}
