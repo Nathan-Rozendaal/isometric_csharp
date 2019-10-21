@@ -32,6 +32,7 @@ namespace isometric
 		private Vector vOrigin = new Vector(5, 1);
 		private Vector vSelected = new Vector();
 		private BitmapImage spritesB;
+		private Bitmap bitmap;
 		private int[] pWorld;
 		private Image[] images = new Image[Convert.ToInt32(vWorldsize.X*vWorldsize.Y)];
 
@@ -41,6 +42,7 @@ namespace isometric
 			spritesB = new BitmapImage(new Uri("pack://application:,,,/isometric_demo2.png"));
 			pWorld = new int[Convert.ToInt32(vWorldsize.X * vWorldsize.Y)];
 			Array.Clear(pWorld, 0, pWorld.Length);
+			bitmap = BitmapImage2Bitmap(spritesB);
 			InitializeComponent();
 
 			StartUI();
@@ -206,7 +208,7 @@ namespace isometric
 			if (vOffset.X > 0 && vOffset.Y > 0)
 			{
 
-				col = BitmapImage2Bitmap(spritesB).GetPixel(Convert.ToInt32(3 * vTileSize.X + vOffset.X), Convert.ToInt32(vOffset.Y));
+				col = bitmap.GetPixel(Convert.ToInt32(3 * vTileSize.X + vOffset.X), Convert.ToInt32(vOffset.Y));
 				if (col == Color.FromArgb(255, 0, 0))
 				{
 					vSelected.X += -1;
