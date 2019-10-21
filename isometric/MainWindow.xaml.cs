@@ -16,6 +16,7 @@ using System.Windows.Threading;
 using System.Drawing;
 using Color = System.Drawing.Color;
 using System.IO;
+using Image = System.Windows.Controls.Image;
 
 namespace isometric
 {
@@ -25,13 +26,14 @@ namespace isometric
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		private Vector vWorldsize = new Vector(14, 10);
+		private static Vector vWorldsize = new Vector(14, 10);
 		//using a 2x upscaled image. same issue happens without upscaling
 		private Vector vTileSize = new Vector(80, 40);
 		private Vector vOrigin = new Vector(5, 1);
 		private Vector vSelected = new Vector();
 		private BitmapImage spritesB;
 		private int[] pWorld;
+		private Image[] images = new Image[Convert.ToInt32(vWorldsize.X*vWorldsize.Y)];
 
 		public MainWindow()
 		{
@@ -41,53 +43,112 @@ namespace isometric
 			Array.Clear(pWorld, 0, pWorld.Length);
 			InitializeComponent();
 
-			Updateui();
+			StartUI();
 			CompositionTarget.Rendering += CompositionTarget_Rendering;
 
 
 		}
 
-		private void Updateui()
+		private void StartUI()
 		{
 
 			canvas.Children.Clear();
-
+			int counter = 0;
 			for (int y = 0; y < vWorldsize.Y; y++)
 			{
 				for (int x = 0; x < vWorldsize.X; x++)
 				{
 					Vector vWorld = ToScreen(x, y);
+					Image image = new Image();
 					switch (pWorld[y * Convert.ToInt32(vWorldsize.X) + x])
 					{
+						
 						case 0:
 
-							canvas.Children.Add(DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y), 1 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
+							image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y), 1 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
 
 							break;
 						case 1:
 							// Visible Tile
-							canvas.Children.Add(DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y), 2 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
+							image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y), 2 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
 							break;
 						case 2:
 							// Tree
-							canvas.Children.Add(DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 0 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y*2)));
+							image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 0 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y*2)));
 							break;
 						case 3:
 							// Spooky Tree
-							canvas.Children.Add(DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 1 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+							image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 1 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
 							break;
 						case 4:
 							// Beach
-							canvas.Children.Add(DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 2 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+							image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 2 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
 							break;
 						case 5:
 							// Water
-							canvas.Children.Add(DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 3 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+							image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 3 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
 							break;
 					}
+					canvas.Children.Add(image);
+					images[counter] = image;
+					counter++;
 				}
 			}
 		}
+		private void UpdateUI(int id,Vector v)
+		{
+			UIElement[] uIElements = new UIElement[canvas.Children.Count];
+			int x = Convert.ToInt32(v.X);
+			int y = Convert.ToInt32(v.Y);
+			Vector vWorld = ToScreen(x, y);
+			Image image = new Image();
+			switch (pWorld[id])
+			{
+
+				case 0:
+
+					image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y), 1 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
+
+					break;
+				case 1:
+					// Visible Tile
+					image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y), 2 * Convert.ToInt32(vTileSize.X), 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y)));
+					break;
+				case 2:
+					// Tree
+					image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 0 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+					break;
+				case 3:
+					// Spooky Tree
+					image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 1 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+					break;
+				case 4:
+					// Beach
+					image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 2 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+					break;
+				case 5:
+					// Water
+					image = (DrawPartialSprite(Convert.ToInt32(vWorld.X), Convert.ToInt32(vWorld.Y) - Convert.ToInt32(vTileSize.Y), 3 * Convert.ToInt32(vTileSize.X), 1 * Convert.ToInt32(vTileSize.Y), Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y * 2)));
+					break;
+
+			}
+			images[id] = image;
+			canvas.Children.CopyTo(uIElements,0);
+			for (int i = 0; i < uIElements.Length; i++)
+			{
+				if (i == id)
+				{
+					uIElements[id] = image;
+				}
+			}
+			canvas.Children.Clear();
+			foreach (var item in uIElements)
+			{
+				canvas.Children.Add(item);
+			}
+			
+		}
+
 		private System.Windows.Controls.Image DrawPartialSprite(int locx, int locy, int px, int py, int width, int height)
 		{
 			CroppedBitmap cb = new CroppedBitmap(
@@ -196,10 +257,11 @@ namespace isometric
 				{
 					pWorld[Convert.ToInt32(vSelected.Y * vWorldsize.X + vSelected.X)]++;
 				}
+				UpdateUI(Convert.ToInt32(vSelected.Y * vWorldsize.X + vSelected.X), vSelected);
 			}
 
 
-			Updateui();
+			
 
 
 		}
