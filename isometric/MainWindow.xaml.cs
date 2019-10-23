@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 using System.Drawing;
 using Color = System.Drawing.Color;
 using System.IO;
@@ -20,14 +11,12 @@ using Image = System.Windows.Controls.Image;
 
 namespace isometric
 {
-
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
 	public partial class MainWindow : Window
 	{
 		private static Vector vWorldsize = new Vector(14, 10);
-		//using a 2x upscaled image. same issue happens without upscaling
 		private Vector vTileSize = new Vector(80, 40);
 		private Vector vOrigin = new Vector(5, 1);
 		private Vector vSelected = new Vector();
@@ -35,6 +24,7 @@ namespace isometric
 		private Bitmap bitmap;
 		private int[] pWorld;
 		private Image[] images = new Image[Convert.ToInt32(vWorldsize.X*vWorldsize.Y)];
+		private Image highlight;
 
 		public MainWindow()
 		{
@@ -42,14 +32,13 @@ namespace isometric
 			pWorld = new int[Convert.ToInt32(vWorldsize.X * vWorldsize.Y)];
 			Array.Clear(pWorld, 0, pWorld.Length);
 			bitmap = BitmapImage2Bitmap(spritesB);
+			highlight = DrawPartialSprite(0, 0, 0, 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y));
 			InitializeComponent();
 			StartUI();
 			CompositionTarget.Rendering += CompositionTarget_Rendering;
 		}
-
 		private void StartUI()
 		{
-			canvas.Children.Clear();
 			int counter = 0;
 			for (int y = 0; y < vWorldsize.Y; y++)
 			{
@@ -66,14 +55,13 @@ namespace isometric
 		private void UpdateUI(int id,Vector v)
 		{
 			UIElement[] uIElements = new UIElement[canvas.Children.Count];
-			int x = Convert.ToInt32(v.X);
-			int y = Convert.ToInt32(v.Y);
-			Vector vWorld = ToScreen(x, y);
+			Vector vWorld = ToScreen(Convert.ToInt32(v.X), Convert.ToInt32(v.Y));
 			Image image = GetTile(vWorld,id);
 			images[id] = image;
 			canvas.Children.CopyTo(uIElements,0);
 			uIElements[id] = image;
 			canvas.Children.Clear();
+
 			foreach (var item in uIElements)
 			{
 				canvas.Children.Add(item);
@@ -111,7 +99,6 @@ namespace isometric
 			}
 			return image;
 		}
-
 		private Image DrawPartialSprite(int locx, int locy, int px, int py, int width, int height)
 		{
 			CroppedBitmap cb = new CroppedBitmap(
@@ -135,12 +122,10 @@ namespace isometric
 				BitmapEncoder enc = new BmpBitmapEncoder();
 				enc.Frames.Add(BitmapFrame.Create(bitmapImage));
 				enc.Save(outStream);
-				System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(outStream);
-
+				Bitmap bitmap = new Bitmap(outStream);
 				return new Bitmap(bitmap);
 			}
 		}
-
 		System.Windows.Point GetMousePos()
 		{
 			return Mouse.GetPosition(canvas);
@@ -151,7 +136,6 @@ namespace isometric
 			double b = (vOrigin.Y * vTileSize.Y) + (x + y) * (vTileSize.Y / 2);
 			return new Vector(a, b);
 		}
-		Image remove;
 		//game loop
 		private void CompositionTarget_Rendering(object sender, EventArgs e)
 		{
@@ -161,6 +145,7 @@ namespace isometric
 
 			vSelected.X = (vCell.Y - vOrigin.Y) + (vCell.X - vOrigin.X);
 			vSelected.Y = (vCell.Y - vOrigin.Y) - (vCell.X - vOrigin.X);
+
 			if (vOffset.X > 0 && vOffset.Y > 0)
 			{
 				Color col = bitmap.GetPixel(Convert.ToInt32(3 * vTileSize.X + vOffset.X), Convert.ToInt32(vOffset.Y));
@@ -185,15 +170,15 @@ namespace isometric
 					vSelected.Y += 0;
 				}
 			}
-
 			Vector vSelectedWorld = ToScreen(Convert.ToInt32(vSelected.X), Convert.ToInt32(vSelected.Y));
-			canvas.Children.Remove(remove);
-			Image img = DrawPartialSprite(Convert.ToInt32(vSelectedWorld.X), Convert.ToInt32(vSelectedWorld.Y), 0, 0, Convert.ToInt32(vTileSize.X), Convert.ToInt32(vTileSize.Y));
-			canvas.Children.Add(img);
-			remove = img;
+
+			canvas.Children.Remove(highlight);
+			Canvas.SetTop(highlight, Convert.ToInt32(vSelectedWorld.Y));
+			Canvas.SetLeft(highlight, Convert.ToInt32(vSelectedWorld.X));
+			canvas.Children.Add(highlight);
+
 			info.Text = $"Mouse \t: {vMouse.X},{vMouse.Y}\nCell \t: {vCell.X},{vCell.Y}\nSelected\t: {vSelected.X},{vSelected.Y}";
 		}
-
 		private void clickevent(object sender, MouseButtonEventArgs e)
 		{
 			if (vSelected.X >= 0 && vSelected.X < vWorldsize.X && vSelected.Y >= 0 && vSelected.Y < vWorldsize.Y)
